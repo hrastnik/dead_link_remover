@@ -151,3 +151,5 @@ var SEC = 1000;
 var MIN = 60 * SEC;
 
 setInterval(main_loop, 10*SEC);
+
+console.log('Dead link remover successfully started');
