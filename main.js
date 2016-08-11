@@ -164,11 +164,13 @@ function main_loop()
 setInterval(main_loop, remove_interval);
 
 // Bind to port ... Heroku times out if you don't
-http.createServer((req, res) => 
+var server = http.createServer((req, res) => 
 {
     res.statusCode = '200'; 
     res.setHeader('Content-Type', 'text/plain'); 
     res.end('Remover working...');
-}).listen(process.env.PORT || 8080);
+})
+var PORT = process.env.PORT || 8080;
+server.listen(PORT, () => console.log('Listening on port ' + PORT));
 
 console.log('Dead link remover successfully started');
