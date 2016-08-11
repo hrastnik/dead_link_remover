@@ -10,6 +10,9 @@ var remove_interval = process.argv[5] || 10*MIN;
 var reddit_redirect_uri = 'http://www.google.com';
 var reddit = new rawjs('dead-link-remover');
 
+var SEC = 1000;
+var MIN = 60 * SEC;
+
 /*
     Check if youtube video with given id is removed. 
     Calls removed_callback if video removed, else calls removed_callback.
@@ -58,7 +61,17 @@ function get_latest_posts(subreddit_name, received_posts_callback)
         {
             var page_string = ''; 
             response.on('data', chunk => page_string += chunk);
-            response.on('end', () => received_posts_callback(JSON.parse(page_string)));
+            response.on('end', () => 
+            {
+                try
+                {    
+                    received_posts_callback(JSON.parse(page_string));
+                }
+                catch (e)
+                {
+                    return {};
+                }
+            });
         }
     );
 
@@ -118,38 +131,35 @@ function main_loop()
             return;
         }
 
-        json_posts.data.children.forEach((post) =>
+        reddit_login(() => 
         {
-            if (post.kind !== 't3')
+            json_posts.data.children.forEach((post) =>
             {
-                console.log('Reddit post with id ' + post.data.id + ' is not a link'); 
-                return;
-            }
-        
-            check_if_post_is_youtube_link(post, function on_true(video_id) 
-            {
-                check_if_youtube_video_removed(
-                    video_id, 
-                    function on_not_removed() 
-                    {
-                        console.log('Post ' + post.data.id + ' : Youtube ID '+ video_id +' is not removed.')
-                    },
-                    function on_removed()
-                    {
-                        console.log('Trying to remove post ' + post.data.id + ' with Youtube ID ' + video_id)
-                        reddit_login(() => 
+                if (post.kind !== 't3')
+                {
+                    console.log('Reddit post with id ' + post.data.id + ' is not a link'); 
+                    return;
+                }
+            
+                check_if_post_is_youtube_link(post, function on_true(video_id) 
+                {
+                    check_if_youtube_video_removed(
+                        video_id, 
+                        function on_not_removed() 
                         {
-                            remove_reddit_post(post.data.name)
-                        });
-                    }
-                );
+                            console.log('Post ' + post.data.id + ' : Youtube ID '+ video_id +' is not removed.')
+                        },
+                        function on_removed()
+                        {
+                            console.log('Trying to remove post ' + post.data.id + ' with Youtube ID ' + video_id)
+                            remove_reddit_post(post.data.name);
+                        }
+                    );
+                });
             });
         });
     });    
 }
-
-var SEC = 1000;
-var MIN = 60 * SEC;
 
 setInterval(main_loop, remove_interval);
 
