@@ -6,6 +6,7 @@ var reddit_client_id = 'YpmwvUsyqZdMZQ';
 var reddit_username = process.argv[2] || (() => {throw 'Provide reddit bot username as first argument'})();
 var reddit_password = process.argv[3] || (() => {throw 'Provide reddit bot password as second argument'})();
 var reddit_subreddit = process.argv[4] || (() => {throw 'Provide subreddit as third argument'})();
+var remove_interval = process.argv[5] || 10*MIN;
 var reddit_redirect_uri = 'http://www.google.com';
 var reddit = new rawjs('dead-link-remover');
 
@@ -150,6 +151,6 @@ function main_loop()
 var SEC = 1000;
 var MIN = 60 * SEC;
 
-setInterval(main_loop, 10*SEC);
+setInterval(main_loop, remove_interval);
 
 console.log('Dead link remover successfully started');
