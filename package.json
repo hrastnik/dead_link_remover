@@ -1,0 +1,23 @@
+{
+  "name": "dead_link_remover",
+  "version": "1.0.0",
+  "description": "Remove dead youtube links from youtube",
+  "main": "main.js",
+  "dependencies": {
+    "raw.js": "^0.4.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mc-jesus/dead_link_remover.git"
+  },
+  "author": "Matt Hammond",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mc-jesus/dead_link_remover/issues"
+  },
+  "homepage": "https://github.com/mc-jesus/dead_link_remover#readme"
+}
