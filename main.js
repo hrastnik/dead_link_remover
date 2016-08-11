@@ -169,6 +169,6 @@ http.createServer((req, res) =>
     res.statusCode = '200'; 
     res.setHeader('Content-Type', 'text/plain'); 
     res.end('Remover working...');
-}).listen(process.PORT || 8080);
+}).listen(process.env.PORT || 8080);
 
 console.log('Dead link remover successfully started');
