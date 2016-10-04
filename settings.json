@@ -1,0 +1,7 @@
+{
+    "reddit_secret" : "PUT_YOUR_REDDIT_SECRET_HERE",
+    "reddit_client_id" : "PUT_YOUR_REDDIT_CLIENT_ID_HERE",
+    "reddit_username" : "PUT_YOUR_REDDIT_USERNAME",
+    "reddit_subreddit" : "PUT_THE_SUBREDDIT_ID_HERE",
+    "remove_interval" : 600000 
+}

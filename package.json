@@ -1,14 +1,14 @@
 {
   "name": "dead_link_remover",
   "version": "1.0.0",
-  "description": "Remove dead youtube links from youtube",
+  "description": "Remove dead youtube links from your reddit thread",
   "main": "main.js",
   "dependencies": {
-    "raw.js": "^0.4.0"
+    "raw.js": "^0.4.0",
   },
   "devDependencies": {},
   "scripts": {
-    "start": "node main.js DeadLinkRemover iflinkdeadremove bkt4jH3r",
+    "start": "node main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

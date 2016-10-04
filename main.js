@@ -1,21 +1,53 @@
-var http = require('https');
 var rawjs = require('raw.js');
-
-var reddit_secret = 'MoEl2axGfSzg9jm3S6DyNWo5xX8';
-var reddit_client_id = 'YpmwvUsyqZdMZQ';
-var reddit_username = process.argv[2] || (() => {throw 'Provide reddit bot username as first argument'})();
-var reddit_password = process.argv[3] || (() => {throw 'Provide reddit bot password as second argument'})();
-var reddit_subreddit = process.argv[4] || (() => {throw 'Provide subreddit as third argument'})();
-var remove_interval = process.argv[5] || 600000;
-var reddit_redirect_uri = 'http://www.google.com';
 var reddit = new rawjs('dead-link-remover');
+var fs = require('fs');
+var readline = require('readline');
+var http = require('https');
 
-var SEC = 1000;
-var MIN = 60 * SEC;
+var settings = JSON.parse(fs.readFileSync(`${__dirname}/settings.json`));
+
+if (settings.reddit_secret == null ||
+    settings.reddit_client_id == null ||
+    settings.reddit_username == null ||
+    settings.reddit_subreddit == null)
+{
+    throw 'Invalid settings detected';
+}
+
+var reddit_secret = settings.reddit_secret;
+var reddit_client_id = settings.reddit_client_id;
+var reddit_username = settings.reddit_username
+var reddit_subreddit = settings.reddit_subreddit
+var remove_interval = settings.remove_interval || (600000);
+var reddit_redirect_uri = 'http://www.google.com/';
+var reddit_password;
+
+var rl = readline.createInterface({
+    input : process.stdin,
+    output : process.stdout
+});
+
+// Ask user for password
+rl.question('Enter reddit password:', function (user_input)
+{
+    console.log('\033[2J'); // Clear screen to hide password
+
+    reddit_password = user_input;
+    reddit.setupOAuth2(reddit_client_id, reddit_secret, reddit_redirect_uri);
+    
+    reddit_login(
+        () => console.log('Logged in reddit account successfully'),
+        (err) => {console.error('Error logging in reddit account..\n' + err); process.exit(-1);});
+   
+    setInterval(main_loop, remove_interval);
+
+    console.log('Dead link remover successfully started');
+});
+
 
 /*
     Check if youtube video with given id is removed. 
-    Calls removed_callback if video removed, else calls removed_callback.
+    Calls on_removed if video removed, else calls on_valid.
 */
 function check_if_youtube_video_removed(youtube_video_id, on_valid, on_removed)
 {
@@ -40,7 +72,7 @@ function check_if_youtube_video_removed(youtube_video_id, on_valid, on_removed)
         }
     );
 
-    request.on('error', error => console.log('Youtube request failed:\n' + error));
+    request.on('error', error => console.error('Youtube request failed:\n' + error));
 
     request.end();
 }
@@ -75,7 +107,7 @@ function get_latest_posts(subreddit_name, received_posts_callback)
         }
     );
 
-    request.on('error', error => console.log('Getting reddit posts failed:\n' + error));
+    request.on('error', error => console.error('Getting reddit posts failed:\n' + error));
 
     request.end();
 }
@@ -83,7 +115,7 @@ function get_latest_posts(subreddit_name, received_posts_callback)
 /*
     Log in to reddit and calls on_login_success with parameter returned by reddit
 */
-function reddit_login(on_login_success)
+function reddit_login(on_login_success, on_login_fail)
 {
     reddit.auth(
         {
@@ -92,7 +124,17 @@ function reddit_login(on_login_success)
         }, 
         function (err, res)
         {
-            if (err) console.log('Error' + err);
+            if (err) 
+            {
+                if (on_login_fail)
+                {
+                    on_login_fail(err);
+                }
+                else 
+                {
+                    console.error('Error' + err);
+                }
+            }
             else on_login_success();
         }
     );
@@ -100,7 +142,7 @@ function reddit_login(on_login_success)
 
 function remove_reddit_post(post_id)
 {
-    reddit.remove(post_id, (err) => err && console.log('Error from remove('+post_id+'): ' + err));
+    reddit.remove(post_id, (err) => err && console.error('Error from remove('+post_id+'): ' + err));
 }
 
 function check_if_post_is_youtube_link(post, on_true)
@@ -121,13 +163,12 @@ function check_if_post_is_youtube_link(post, on_true)
 
 function main_loop()
 {
-    reddit.setupOAuth2(reddit_client_id, reddit_secret, reddit_redirect_uri);
-
+    console.log('Getting latest posts');
     get_latest_posts(reddit_subreddit, function(json_posts)
     {
         if (json_posts.kind != 'Listing')
         {
-            console.log("Error getting Reddit posts");
+            console.error("Error getting Reddit posts");
             return;
         }
 
@@ -160,17 +201,3 @@ function main_loop()
         });
     });    
 }
-
-setInterval(main_loop, remove_interval);
-
-// Bind to port ... Heroku times out if you don't
-var server = http.createServer((req, res) => 
-{
-    res.statusCode = '200'; 
-    res.setHeader('Content-Type', 'text/plain'); 
-    res.end('Remover working...');
-})
-var PORT = process.env.PORT || 8080;
-server.listen(PORT, () => console.log('Listening on port ' + PORT));
-
-console.log('Dead link remover successfully started');
